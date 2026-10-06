@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function admin() {
+      return request.auth != null && request.auth.token.email == 'admin@juliofortes.app';
+    }
+    function ok() {
+      return admin() || (request.auth != null && request.auth.token.email == 'equipe@juliofortes.app');
+    }
+    match /painel/{d} {
+      allow read: if ok();
+      allow write: if admin();
+    }
+    match /planos/{id} {
+      allow read, write: if ok();
+    }
+  }
+}
