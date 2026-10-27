@@ -220,7 +220,7 @@ $('fT').textContent=sc.t+(plan?' (editando)':'');msg('');
 $('fF').innerHTML=sc.f.map(f=>f.h?`<h4>${f.h}</h4>`:f.box?`<div class="${f.box=='pd'?'pd':'w2'}" id="b_${f.box}"></div>`:`<label class="${f.w?'w2':''}">${f.l}${f.r?' *':''}${f.t=='a'?`<textarea id="f_${f.k}"></textarea>`:f.t=='s'?`<select id="f_${f.k}">${ops(f.o)}</select>`:`<input id="f_${f.k}">`}</label>`).join('');
 sc.f.forEach(f=>{if(f.k&&!h.includes(f.k))set(f.k,P[f.k]??(f.k=='status'?'Planejado':''))});
 if(type=='p'){set('turma',P.turma||'');setComp(P.comp||'');$('f_turma').onchange=()=>{setComp('');rf(1)};$('f_comp').onchange=()=>rf(1)}
-else{setAlu(P.aluno||'');$('f_nome').onchange=()=>{setAlu('');rf(1)};$('f_aluno').onchange=()=>rf(1)}
+else{set('nome',P.nome||'');setAlu(P.aluno||'');$('f_nome').onchange=()=>{setAlu('');rf(1)};$('f_aluno').onchange=()=>rf(1)}
 rf(0);$('fD').hidden=false;$('fD').scrollIntoView()}
 const rf=a=>fst.type=='p'?rP(a):rT();
 function sync(){const g=(id,c)=>c.filter((x,i)=>{const e=document.querySelectorAll('#'+id+' input')[i];return e&&e.checked});fst.sel.desc=g('b_desc',fst.cd);fst.sel.alu=g('b_alu',fst.ca)}
@@ -240,14 +240,14 @@ ba.innerHTML='<b>Alunos prioritários (abaixo de 50% no componente, no último b
 function rT(){const pd=$('b_pd'),s=S.find(x=>x.n==v('aluno')&&x.t==v('nome'));
 if(!s){pd.textContent='Escolha o tutor e o tutorado para ver os dados do painel.';return}
 const I=[0,1,2],R=I.map(i=>res(s,i)),g=R.map(r=>r?r[0]:null),li=R.reduce((p,r,i)=>r?i:p,-1),fr=li<0?[]:SUB.map((k,j)=>[SN[k],R[li][j+1],li]).filter(x=>x[1]!=null).sort((a,b)=>a[1]-b[1]).slice(0,3);
-fst.snap={turma:s.c,geral:g,fracos:fr};
+fst.snap={turma:s.c,geral:g,fracos:fr.map(x=>({n:x[0],a:x[1],b:x[2]}))};
 pd.innerHTML=`<b>Dados do painel · ${esc(s.n)} · ${esc(s.c)}</b>`+tbl(`<tr><td>Participação</td>${R.map(r=>`<td class="n ${r?'':'x'}">${r?'Sim':'Ausente'}</td>`).join('')}</tr><tr><td>Acerto geral</td>${g.map(ce).join('')}</tr>`)+`<p style="margin:8px 0 0">Componentes com menor acerto: ${fr.length?fr.map(x=>`${esc(x[0])} ${pc(x[1])} (${x[2]+1}º bim)`).join(' · '):'sem dados'}</p>`}
 async function save(){const sc=FS[fst.type],miss=sc.f.filter(f=>f.r&&!v(f.k)).map(f=>f.l);
 if(miss.length){msg('Preencha: '+miss.join(', ')+'.',1);return}
 const old=fst.id?(await Store.list()).find(x=>x.id==fst.id):null,now=new Date().toISOString(),p={...(old||{}),id:fst.id||Date.now().toString(36)+Math.random().toString(36).slice(2,6),tipo:fst.type,criado:(old&&old.criado)||now,atual:now,sel:fst.sel};
 sc.f.forEach(f=>{if(f.k)p[f.k]=v(f.k)});
 if(fst.type=='t'){p.snap=fst.snap;p.turma=(fst.snap||{}).turma||''}
-try{await Store.put(p)}catch(e){msg('Não foi possível salvar neste navegador. Libere o armazenamento do site e tente de novo.',1);return}
+try{await Store.put(p)}catch(e){msg('Não foi possível salvar: '+(e.code||e.message),1);return}
 closeF();$('lM').textContent='Plano salvo.';drawL()}
 function closeF(){$('fD').hidden=true;fst=null;document.querySelectorAll('.ent button').forEach(b=>b.classList.remove('on'))}
 async function drawL(){const L=await Store.list(),ty=$('lT').value,st=$('lS').value,q=$('lQ').value.toLowerCase();
